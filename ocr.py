@@ -1,3 +1,5 @@
+from random import random
+
 import cv2
 import numpy as np
 
@@ -56,14 +58,7 @@ def resize(image, width=1000):
     return image
 
 
-def identity(image, ocr):
-    """
-    paddleOcr 识别身份证，如果识别不出来则旋转180度尝试
-    :param image:
-    :param ocr:
-    :return:
-    """
-    result = ocr.ocr(image)
+def is_front(result):
     found = False
     front = False
 
@@ -73,16 +68,58 @@ def identity(image, ocr):
             front = True if line[1][0] == '公民身份号码' else False
             break
 
+    return found, front
+
+
+def identity(image, ocr):
+    """
+    paddleOcr 识别身份证，如果识别不出来则旋转180度尝试
+    :param image:
+    :param ocr:
+    :return:
+    """
+    result = ocr.ocr(image)
+    found, front = is_front(result)
+
     if found is False:
-        image = np.rot90(image, 2)
-        result = ocr.ocr(image)
+        found, front = is_front(ocr.ocr(np.rot90(image, 2)))
+
+    h, w, _ = image.shape
+    print("宽高", w, h)
 
     # 根据位置定位需要的文字
+    if front:
+        ret = {'name': '', 'gender': '', 'nation': '', 'birthday': '', 'card': '', 'address': ''}
+    else:
+        ret = {'effective_date': '', 'expire_date': ''}
 
-    for line in result:
-        if line[1][1] < 0.7:
-            continue
-        print('正面' if front else '反面', line)
+    if found:
+        if front:
+            for line in result:
+                if line[1][1] < 0.7:
+                    # 置信度小于0.7不处理
+                    continue
+
+                y = int(line[0][0][1])
+                if y < int(h * 0.2028):
+                    print("姓名", line[1][0])
+                elif y < int(h * 0.3317):
+                    print("性别或民族", line[1][0])
+                elif y < int(h * 0.4431):
+                    print("生日", line[1][0])
+                elif y < int(h * 0.7616):
+                    print("地址", line[1][0])
+                else:
+                    print("身份证", line[1][0])
+        else:
+            for line in result:
+                if line[1][1] < 0.7:
+                    # 置信度小于0.7不处理
+                    continue
+
+                y = int(line[0][0][1])
+                if y > int(h * 0.7976):
+                    print("有效日期", line[1][0])
 
 
 def main(src, ocr):
