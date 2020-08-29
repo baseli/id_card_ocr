@@ -1,4 +1,4 @@
-### 身份证复印件识别离线
+### 身份证复印件离线识别
 
 #### 环境
 1. `python 3.7.3`
@@ -14,3 +14,6 @@
 - [ ] 格式化结果
 - [ ] `windows` 编译 `exe` 执行
 - [ ] `windows gui` 编写
+
+#### 感谢
+[https://github.com/Wangzg123/fileclipper](https://github.com/Wangzg123/fileclipper)
