@@ -1,3 +1,4 @@
+import re
 from random import random
 
 import cv2
@@ -82,10 +83,11 @@ def identity(image, ocr):
     found, front = is_front(result)
 
     if found is False:
-        found, front = is_front(ocr.ocr(np.rot90(image, 2)))
+        image = np.rot90(image, 2)
+        result = ocr.ocr(image)
+        found, front = is_front(result)
 
     h, w, _ = image.shape
-    print("宽高", w, h)
 
     # 根据位置定位需要的文字
     if front:
@@ -102,15 +104,23 @@ def identity(image, ocr):
 
                 y = int(line[0][0][1])
                 if y < int(h * 0.2028):
-                    print("姓名", line[1][0])
+                    ret['name'] = line[1][0].replace('姓名', '')
                 elif y < int(h * 0.3317):
-                    print("性别或民族", line[1][0])
+                    if '性别' in line[1][0] and '民族' in line[1][0]:
+                        ret['gender'] = line[1][0][2:3]
+                        ret['nation'] = line[1][0][5:6]
+                    else:
+                        if '性别' in line[1][0]:
+                            ret['gender'] = line[1][0].replace('性别', '')
+                        elif '民族' in line[1][0]:
+                            ret['nation'] = line[1][0].replace('民族', '')
                 elif y < int(h * 0.4431):
-                    print("生日", line[1][0])
+                    ret['birthday'] = ret['birthday'] + line[1][0].replace('出生', '')
                 elif y < int(h * 0.7616):
-                    print("地址", line[1][0])
+                    ret['address'] = ret['address'] + line[1][0].replace('住址', '')
                 else:
-                    print("身份证", line[1][0])
+                    if re.search('^\d{17}[\dXx]{1}$', line[1][0]) is not None:
+                        ret['card'] = line[1][0]
         else:
             for line in result:
                 if line[1][1] < 0.7:
@@ -118,8 +128,12 @@ def identity(image, ocr):
                     continue
 
                 y = int(line[0][0][1])
-                if y > int(h * 0.7976):
-                    print("有效日期", line[1][0])
+                if y > int(h * 0.7976) and line[0][0][0] > int(w * 0.3862):
+                    date = [item.strip() for item in line[1][0].split('-')]
+                    ret['effective_date'] = date[0]
+                    ret['expire_date'] = date[1]
+
+    return ret
 
 
 def main(src, ocr):
@@ -132,21 +146,23 @@ def main(src, ocr):
     dilation = cv2.dilate(canny, kernel, iterations=1)              # 膨胀一下，来连接边缘
     contours, hierarchy = cv2.findContours(dilation, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)    # 找边框
 
+    ret = {'name': '', 'gender': '', 'nation': '', 'birthday': '', 'card': '', 'address': '', 'effective_date': '',
+           'expire_date': ''}
     for i in range(len(contours)):
         contour = contours[i]
         if cv2.contourArea(contour) > 400000:
-            print(cv2.contourArea(contour))
-
             boxes = getBoxPoint(contour)
             boxes = adaPoint(boxes, 1.0)
             boxes = orderPoints(boxes)
             # 透视变化
             warped = warpImage(im, boxes)
-            identity(warped, ocr)
+            ret = {**ret, **identity(warped, ocr)}
+
+    return ret
 
 
 if __name__ == '__main__':
     paddle = PaddleOCR(det_model_dir='./interface/ch_det_mv3_db/', rec_model_dir='./interface/ch_rec_mv3_crnn/', use_gpu=False)
 
-    main('/Users/liwd/Downloads/123.jpeg', paddle)
-    main('/Users/liwd/Downloads/WechatIMG22.jpeg', paddle)
+    print(main('/Users/liwd/Downloads/123.jpeg', paddle))
+    print(main('/Users/liwd/Downloads/WechatIMG22.jpeg', paddle))
