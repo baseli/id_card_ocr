@@ -18,7 +18,7 @@ networkx==2.5
 nltk==3.5
 numpy==1.19.1
 objgraph==3.4.1
-opencv-python==4.4.0.42
+opencv-python-headless==4.4.0.42
 paddleocr==0.0.3.1
 paddlepaddle==1.8.4
 pathlib==1.0.1
@@ -27,6 +27,8 @@ prettytable==0.7.2
 protobuf==3.13.0
 pyclipper==1.2.0
 pyparsing==2.4.7
+PyQt5==5.15.0
+PyQt5-sip==12.8.1
 python-dateutil==2.8.1
 PyWavelets==1.1.1
 PyYAML==5.3.1

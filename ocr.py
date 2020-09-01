@@ -1,9 +1,7 @@
 import re
-from random import random
 
 import cv2
 import numpy as np
-
 from paddleocr import PaddleOCR
 
 
@@ -119,7 +117,7 @@ def identity(image, ocr):
                 elif y < int(h * 0.7616):
                     ret['address'] = ret['address'] + line[1][0].replace('住址', '')
                 else:
-                    if re.search('^\d{17}[\dXx]{1}$', line[1][0]) is not None:
+                    if re.search(r'^\d{17}[\dXx]$', line[1][0]) is not None:
                         ret['card'] = line[1][0]
         else:
             for line in result:
@@ -130,8 +128,8 @@ def identity(image, ocr):
                 y = int(line[0][0][1])
                 if y > int(h * 0.7976) and line[0][0][0] > int(w * 0.3862):
                     date = [item.strip() for item in line[1][0].split('-')]
-                    ret['effective_date'] = date[0]
-                    ret['expire_date'] = date[1]
+                    ret['effective_date'] = re.sub(r'\D', '', date[0])
+                    ret['expire_date'] = re.sub(r'\D', '', date[1])
 
     return ret
 
@@ -159,10 +157,3 @@ def main(src, ocr):
             ret = {**ret, **identity(warped, ocr)}
 
     return ret
-
-
-if __name__ == '__main__':
-    paddle = PaddleOCR(det_model_dir='./interface/ch_det_mv3_db/', rec_model_dir='./interface/ch_rec_mv3_crnn/', use_gpu=False)
-
-    print(main('/Users/liwd/Downloads/123.jpeg', paddle))
-    print(main('/Users/liwd/Downloads/WechatIMG22.jpeg', paddle))
