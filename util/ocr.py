@@ -1,16 +1,12 @@
-import multiprocessing
 import os
 import re
-import time
 
 import cv2
 import numpy as np
-
-
-# 多边形拟合凸包的四个顶点
 from paddleocr import PaddleOCR
 
 
+# 多边形拟合凸包的四个顶点
 def getBoxPoint(contour):
     # 多边形拟合凸包
     hull = cv2.convexHull(contour)
@@ -172,3 +168,4 @@ class Ocr(object):
                 ret = {**ret, **self.identify(warped)}
 
         return ret
+

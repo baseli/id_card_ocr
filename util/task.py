@@ -1,18 +1,17 @@
 from PyQt5 import QtCore
 
+from util.ocr import Ocr
+
 
 class TaskThread(QtCore.QThread):
     identity = QtCore.pyqtSignal(int, dict)
 
-    def __init__(self, queue):
+    def __init__(self, files: list):
         super(TaskThread, self).__init__()
-        self.queue = queue
+        self.files = files
+        self.ocr = Ocr()
 
     def run(self):
-        while True:
-            if not self.queue.empty():
-                a = self.queue.get()
-                print(a)
-
-            self.sleep(1)
+        for i in range(len(self.files)):
+            self.identity.emit(i, self.ocr.main(self.files[i]))
 
