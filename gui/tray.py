@@ -4,6 +4,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QFileDialog, QTableWidgetItem
 
 from gui.task import Ui_mainWindow
+from util.task import TaskThread
 
 
 class TrayWindowMain(object):
@@ -21,6 +22,13 @@ class TrayWindowMain(object):
         files, _ = QFileDialog.getOpenFileNames(self.main_window, '打开文件', '.', '图像文件(*.jpg *.png)')
         if len(files) > 0:
             for i in range(len(files)):
-                file = files[i]
                 self.ui_window.tableWidget.insertRow(i)
-                self.ui_window.tableWidget.setItem(i, 0, QTableWidgetItem(file))
+                self.ui_window.tableWidget.setItem(i, 0, QTableWidgetItem(files[i]))
+
+            self.thread = TaskThread(files, self.ui_window)
+            self.thread.start()
+            self.thread.finish.connect(self.change_column)
+
+    def change_column(self, i, result):
+        self.ui_window.tableWidget.setItem(i, 11, QTableWidgetItem('已完成'))
+

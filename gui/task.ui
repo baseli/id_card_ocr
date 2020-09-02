@@ -24,12 +24,12 @@
       </column>
       <column>
        <property name="text">
-        <string>新建列</string>
+        <string>证件类型</string>
        </property>
       </column>
       <column>
        <property name="text">
-        <string>证件类型</string>
+        <string>身份证</string>
        </property>
       </column>
       <column>
@@ -39,7 +39,7 @@
       </column>
       <column>
        <property name="text">
-        <string>新建列</string>
+        <string>证件到期日期</string>
        </property>
       </column>
       <column>
@@ -54,7 +54,7 @@
       </column>
       <column>
        <property name="text">
-        <string>新建列</string>
+        <string>国籍</string>
        </property>
       </column>
       <column>
